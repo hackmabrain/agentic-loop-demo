@@ -1,0 +1,10 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "nameSuffix":         { "value": "ptmsft01" },
+    "location":           { "value": "eastus2" },
+    "appServiceSku":      { "value": "P1v3" },
+    "stagingInjectError": { "value": true }
+  }
+}

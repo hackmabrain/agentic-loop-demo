@@ -1,0 +1,135 @@
+name: deploy
+
+# Deploys the Catalog API to the Azure App Service.
+#
+# Trust boundary notes:
+#   * Authenticates to Azure via OIDC federated credentials. No long-lived
+#     secrets in the repo. AZURE_CLIENT_ID / AZURE_TENANT_ID /
+#     AZURE_SUBSCRIPTION_ID are set by infra/provision.sh.
+#   * Tests must pass before any deploy artifact is produced.
+#   * The deploy lands on the staging slot, runs a smoke test, and then
+#     waits for a manual approval (the `production` environment has a
+#     required reviewer) before swapping into production. This is the
+#     human gate that audiences see in slide 5 — "Same approvals."
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  RESOURCE_GROUP: rg-agentic-loop-demo
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.set-artifact.outputs.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/package-lock.json
+      - name: Install dependencies
+        working-directory: src
+        run: npm ci
+      - name: Run tests
+        working-directory: src
+        run: npm test
+      - name: Package app
+        run: |
+          cd src
+          zip -r ../app.zip . -x "tests/*" "*.test.js"
+      - id: set-artifact
+        run: echo "name=catalog-api-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.set-artifact.outputs.name }}
+          path: app.zip
+
+  deploy-staging:
+    if: github.event_name != 'pull_request'
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    # No environment gate on the staging slot — the audience-facing human
+    # gate is on the `production` job below. Keeps SETUP simpler.
+    outputs:
+      app-name: ${{ steps.show.outputs.app-name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-and-test.outputs.artifact-name }}
+      - uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - id: show
+        name: Resolve app name
+        run: |
+          APP_NAME="$(az webapp list --resource-group "$RESOURCE_GROUP" --query '[0].name' -o tsv)"
+          echo "app-name=$APP_NAME" >> "$GITHUB_OUTPUT"
+          echo "APP_NAME=$APP_NAME" >> "$GITHUB_ENV"
+      - name: Deploy to staging slot
+        run: |
+          az webapp deployment source config-zip \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_NAME" \
+            --slot staging \
+            --src app.zip
+      - name: Smoke test staging
+        run: |
+          STAGING_URL="https://${APP_NAME}-staging.azurewebsites.net"
+          for i in $(seq 1 10); do
+            STATUS="$(curl -s -o /dev/null -w "%{http_code}" "$STAGING_URL/")"
+            if [[ "$STATUS" == "200" ]]; then echo "Staging OK"; exit 0; fi
+            echo "Attempt $i: $STATUS — sleeping 5s"; sleep 5
+          done
+          echo "Staging smoke test failed."; exit 1
+
+  deploy-production:
+    if: github.event_name != 'pull_request'
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ needs.deploy-staging.outputs.app-name }}.azurewebsites.net
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Slot swap staging → production
+        run: |
+          APP_NAME="${{ needs.deploy-staging.outputs.app-name }}"
+          az webapp deployment slot swap \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_NAME" \
+            --slot staging \
+            --target-slot production
+      - name: Smoke test production
+        run: |
+          APP_NAME="${{ needs.deploy-staging.outputs.app-name }}"
+          PROD_URL="https://${APP_NAME}.azurewebsites.net"
+          for i in $(seq 1 10); do
+            STATUS="$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL/")"
+            if [[ "$STATUS" == "200" ]]; then echo "Production OK"; exit 0; fi
+            echo "Attempt $i: $STATUS — sleeping 5s"; sleep 5
+          done
+          echo "Production smoke test failed."; exit 1

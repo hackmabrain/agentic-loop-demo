@@ -1,0 +1,125 @@
+# DO NOT EDIT BY HAND.
+# This file is the compiled output of .github/workflows/daily-status.md.
+# Regenerate with: gh aw compile daily-status
+#
+# The generated YAML uses the same triggers, permissions, and safe-output
+# contract declared in the Markdown source. The only thing this file adds
+# is the GitHub Actions wiring that runs the Copilot agent against the
+# Markdown body and validates each agent write against safe-outputs before
+# applying it.
+
+name: daily-status (compiled)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * 1-5'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+# Note on the trust boundary: workflow-level `issues: write` is required so
+# the safe-outputs apply step can call `gh issue create`. The agent step
+# itself runs in a job with read-only permissions on the agent's GITHUB_TOKEN
+# — see `permissions:` on the `agentic-run` job below. The write step uses a
+# separate, narrowly-scoped fine-grained PAT (COPILOT_GITHUB_TOKEN, scoped to
+# this repo only with Issues: Read & Write) so the agent never sees a write
+# token. This matches the "see wide, write narrow" model in the deck.
+
+concurrency:
+  group: aw-daily-status
+  cancel-in-progress: false
+
+jobs:
+  agentic-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Job-level permissions for the agent step are read-only.
+    # The apply step below uses COPILOT_GITHUB_TOKEN explicitly.
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve agent inputs
+        id: inputs
+        run: |
+          {
+            echo "engine=copilot"
+            echo "title_prefix=[repo status] "
+            echo "max_issues=1"
+            echo "labels=report,daily-status"
+            echo "close_older=true"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run Copilot agent against daily-status.md
+        id: agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        # Bridge step: shells out to the gh-aw runtime that compiled this
+        # lockfile. The runtime invokes the Copilot CLI in headless mode,
+        # passes the Markdown body as the agent's instructions, and emits
+        # any candidate writes to /tmp/aw-outputs.json for validation.
+        run: |
+          npx --yes @githubnext/gh-aw-runtime@latest run \
+            --markdown .github/workflows/daily-status.md \
+            --engine copilot \
+            --output /tmp/aw-outputs.json
+
+      - name: Validate writes against safe-outputs
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const outputs = JSON.parse(fs.readFileSync('/tmp/aw-outputs.json','utf8'));
+          const allowed = new Set(['create-issue']);
+          const issues = outputs.filter(o => o.kind === 'create-issue');
+          if (issues.length > 1) {
+            console.error('safe-outputs violation: more than one create-issue requested');
+            process.exit(1);
+          }
+          for (const o of outputs) {
+            if (!allowed.has(o.kind)) {
+              console.error(`safe-outputs violation: kind '${o.kind}' is not declared`);
+              process.exit(1);
+            }
+          }
+          console.log(`OK — ${issues.length} create-issue write(s) ready to apply.`);
+          NODE
+
+      - name: Apply create-issue write
+        # Uses the narrowly-scoped fine-grained PAT (Issues: Read & Write on
+        # this repo only). The agent step above never sees this token.
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const outputs = JSON.parse(fs.readFileSync('/tmp/aw-outputs.json','utf8'));
+          const issue = outputs.find(o => o.kind === 'create-issue');
+          if (!issue) { console.log('No issue write — exiting.'); process.exit(0); }
+          const title = `[repo status] ${issue.title || 'Daily activity report'}`;
+          const body = issue.body || '';
+          const labels = ['report','daily-status'];
+          const { execSync } = require('child_process');
+          const cmd = `gh issue create --title ${JSON.stringify(title)} --body ${JSON.stringify(body)} ${labels.map(l=>`--label ${JSON.stringify(l)}`).join(' ')}`;
+          execSync(cmd, { stdio: 'inherit' });
+          NODE
+
+      - name: Close older [repo status] issues
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        run: |
+          gh issue list \
+            --label daily-status \
+            --state open \
+            --json number,createdAt \
+            --limit 50 \
+            | jq -r 'sort_by(.createdAt) | reverse | .[1:] | .[] | .number' \
+            | xargs -I{} gh issue close {} --comment "Superseded by today's [repo status] issue."

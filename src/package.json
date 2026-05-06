@@ -1,0 +1,20 @@
+{
+  "name": "agentic-loop-demo",
+  "version": "1.0.0",
+  "description": "Catalog API for the Agentic Developer Loop demo at GitHub Dev Days SF — May 2026.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "applicationinsights": "^2.9.6"
+  },
+  "license": "MIT",
+  "private": true
+}
