@@ -26,8 +26,11 @@ param nameSuffix string
 ])
 param location string = 'eastus2'
 
-@description('App Service plan SKU. Demo uses P1v3 for fast cold starts.')
-param appServiceSku string = 'P1v3'
+@description('App Service plan SKU. S1 (Standard) is the default — works on Azure Free Trial and supports the 3 deployment slots the demo needs.')
+param appServiceSku string = 'S1'
+
+@description('App Service plan tier. Must match the SKU family: Standard for S1/S2/S3, PremiumV2 for P1v2+, PremiumV3 for P1v3+.')
+param appServiceTier string = 'Standard'
 
 @description('Whether the staging slot starts with INJECT_ERROR=1 set. The demo Wednesday staging step relies on this default.')
 param stagingInjectError bool = true
@@ -87,7 +90,7 @@ resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
   tags: tags
   sku: {
     name: appServiceSku
-    tier: 'PremiumV3'
+    tier: appServiceTier
   }
   kind: 'linux'
   properties: {

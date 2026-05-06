@@ -17,8 +17,15 @@
 
 'use strict';
 
+const fs = require('node:fs');
+const path = require('node:path');
 const express = require('express');
 const productsRouter = require('./routes/products');
+
+// Read the single-page UI once at startup. The page calls /products from the
+// browser, so the seeded bug + INJECT_ERROR are visually observable on stage
+// as a clean "service unavailable" banner instead of a curl 500.
+const indexHtml = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 
 // ---- Application Insights -------------------------------------------------
 // Only initialise when a connection string is present so `npm test` and local
@@ -82,7 +89,15 @@ function injectErrorMiddleware(req, res, next) {
 app.use(injectErrorMiddleware);
 
 // ---- Routes ---------------------------------------------------------------
+// GET /          — single-page UI, calls /products from the browser
+// GET /healthz   — JSON status (used by smoke tests + UI footer build label)
+// GET /products  — JSON API (carries the seeded bug; gated by INJECT_ERROR)
+
 app.get('/', (req, res) => {
+  res.type('html').send(indexHtml);
+});
+
+app.get('/healthz', (req, res) => {
   res.json({
     status: 'ok',
     service: 'catalog-api',

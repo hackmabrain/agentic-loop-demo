@@ -26,19 +26,27 @@ Total live waiting time across 7 minutes: ~60 seconds.
 
 ## Section 2 — Browser tab order
 
-| # | URL                                                                  | Purpose                                           |
-|---|----------------------------------------------------------------------|---------------------------------------------------|
-| 0 | `…/blob/main/.github/agents/sre-investigator.agent.md`               | Custom agent — open if asked about Slide 7 / Q&A |
-| 1 | `…/blob/main/.github/workflows/daily-status.md`                      | Show the agentic workflow file                    |
-| 2 | `…/actions`                                                          | Run + watch the gh-aw run                         |
-| 3 | `…/issues?q=is%3Aopen+sort%3Aupdated`                                | Issues, newest first                              |
-| 4 | `https://github.com/copilot/agents`                                  | Coding Agent dashboard                            |
-| 5 | Azure Portal → App Service → **Metrics** (5xx, last 5 min)           | Show alert firing                                 |
-| 6 | Azure Portal → SRE Agent → Investigations dashboard                  | Show investigation thread                         |
-| 7 | `file:///<repo>/docs/fallback/closed-loop.mov`                       | The all-in-one fallback recording                 |
+| # | URL                                                                  | Purpose                                                                 |
+|---|----------------------------------------------------------------------|-------------------------------------------------------------------------|
+| 0 | `…/blob/main/.github/agents/sre-investigator.agent.md`               | Custom agent — open if asked about Slide 7 / Q&A                       |
+| 1 | `…/blob/main/.github/workflows/daily-status.md`                      | Show the agentic workflow file                                          |
+| 2 | `…/actions`                                                          | Run + watch the gh-aw run                                               |
+| 3 | `…/issues?q=is%3Aopen+sort%3Aupdated`                                | Issues, newest first                                                    |
+| 4 | `https://github.com/copilot/agents`                                  | Coding Agent dashboard                                                  |
+| 5 | **`https://<APP_URL>/`** (the live catalog page)                     | **The visual story.** Audience sees the page break + heal in real time. |
+| 6 | Azure Portal → App Service → **Metrics** (5xx, last 5 min)           | Show alert firing                                                       |
+| 7 | Azure Portal → SRE Agent → Investigations dashboard                  | Show investigation thread                                               |
+| 8 | `file:///<repo>/docs/fallback/closed-loop.mov`                       | The all-in-one fallback recording                                       |
 
 Open tabs in this order, then alt-tab numerically. Tab 0 is the Q&A
-parachute — it should never come up unless someone asks.
+parachute — it should never come up unless someone asks. **Tab 5 is
+new and important** — it's the live catalog page (Northwind Outlet).
+Every demo state is visible there:
+
+- Pre-fix:           red banner, "we're having trouble loading the catalog · HTTP 500"
+- Post-CCA-fix:      product grid renders, "live · 10 items"
+- Post slot swap:    red banner again (different cause, same symptom)
+- After SRE Agent:   product grid back, audience sees the loop close visually
 
 ---
 

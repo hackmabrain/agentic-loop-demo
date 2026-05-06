@@ -34,9 +34,10 @@ SRE_AGENT_NAME  = sre-aldemo (you choose this in SETUP step C6)
 2. `…/actions`  (Actions tab)
 3. `…/issues?q=is%3Aopen+sort%3Aupdated`  (Issues, newest first)
 4. `https://github.com/copilot/agents`  (Coding Agent dashboard)
-5. Azure Portal → App Service → Metrics blade focused on the last 5 min
-6. Azure Portal → SRE Agent dashboard
-7. `file:///<path>/docs/fallback/closed-loop.mov`  (the recovery recording — always last tab)
+5. **`${APP_URL}/`  ← THE LIVE CATALOG PAGE — audience sees every demo state here**
+6. Azure Portal → App Service → Metrics blade focused on the last 5 min
+7. Azure Portal → SRE Agent dashboard
+8. `file:///<path>/docs/fallback/closed-loop.mov`  (the recovery recording — always last tab)
 
 ---
 

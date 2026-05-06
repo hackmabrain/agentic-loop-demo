@@ -28,10 +28,23 @@ function get(server, path, headers = {}) {
   });
 }
 
-test('GET / returns 200 with status ok', async () => {
+test('GET / returns the single-page HTML UI', async () => {
   const server = await listen();
   try {
     const res = await get(server, '/');
+    assert.equal(res.status, 200);
+    // Expect HTML, not JSON. The page loads /products from the browser.
+    assert.match(res.body, /<title>Northwind Outlet/i);
+    assert.match(res.body, /id="catalog"/);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /healthz returns JSON status', async () => {
+  const server = await listen();
+  try {
+    const res = await get(server, '/healthz');
     assert.equal(res.status, 200);
     const body = JSON.parse(res.body);
     assert.equal(body.status, 'ok');
