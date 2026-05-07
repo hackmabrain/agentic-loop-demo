@@ -39,11 +39,42 @@ agentic-loop-demo/
 └── QUICK_REFERENCE.md            # Auto-populated reference card for demo day
 ```
 
+## Quickstart on a fresh laptop
+
+```bash
+git clone https://github.com/hackmabrain/agentic-loop-demo.git
+cd agentic-loop-demo
+
+# Sign in once with the Azure account that owns the demo subscription
+az login
+az account set --subscription "<your-sub-id>"
+gh auth login                  # sign in as hackmabrain or your repo owner
+
+# Run the one-shot setup — provisions Azure, deploys the seeded-bug
+# 'before' state, prints the App URL.
+bash quickstart.sh
+```
+
+`quickstart.sh` does everything from a fresh clone to a working live
+demo URL in ~10 min. It refuses to run on the personal Free Trial sub
+as a safety guard. Region fallback (eastus2 → swedencentral →
+australiaeast) handles regional quota differences automatically.
+
+After it finishes successfully:
+- The App URL is live at `$APP_URL` (printed in the script's output)
+- The seeded bug is in production — `/products` returns 500 (red banner
+  on the catalog page); audience sees this state at the start of the demo
+- `.env.demo` is populated locally; GitHub repo secrets are populated
+  for the OIDC deploy workflow
+
 ## Read in this order
 
-1. **[SETUP.md](./SETUP.md)** — once. About 90 minutes.
-2. **[DEMO_RUNBOOK.md](./DEMO_RUNBOOK.md)** — every rehearsal.
-3. **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** — print this. Keep it
+1. **[quickstart.sh](./quickstart.sh)** — first time on a new laptop. ~10 min.
+2. **[SETUP.md](./SETUP.md)** — for the SRE Agent Portal walkthrough
+   (Phase C6–C11) and the deeper per-step detail. About 35 minutes for
+   the SRE Agent piece alone.
+3. **[DEMO_RUNBOOK.md](./DEMO_RUNBOOK.md)** — every rehearsal.
+4. **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** — print this. Keep it
    on the second monitor during the talk.
 
 ## What the demo proves on stage
@@ -77,15 +108,16 @@ performs a slot swap that brings `INJECT_ERROR=1` into production. The
 middleware in `src/server.js` returns HTTP 500 on `/products` and emits
 the structured trace the SRE Agent's knowledge base keys off of.
 
-## Local quick-start
+## Local-only smoke test (no Azure)
 
 ```bash
 cd src
 npm install
-npm test       # 7 pass, 1 fail (the seeded bug)
+npm test       # 7 pass, 2 fail (the seeded bugs — the Coding Agent fixes both)
 npm start      # http://127.0.0.1:8080
-curl http://127.0.0.1:8080/products                       # 500 (bug)
-curl http://127.0.0.1:8080/products?category=electronics  # 200
+open http://127.0.0.1:8080/                                # the catalog page
+curl http://127.0.0.1:8080/products                        # 500 (seeded bug)
+curl http://127.0.0.1:8080/products?category=electronics   # 200
 ```
 
 ## License
