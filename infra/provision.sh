@@ -4,7 +4,7 @@
 # Usage:
 #   bash infra/provision.sh --target rehearsal
 #   bash infra/provision.sh --target demo
-#   bash infra/provision.sh --target rehearsal --suffix ptmsft01
+#   bash infra/provision.sh --target rehearsal --suffix ptmsft02
 #
 # Behaviour:
 #   * Verifies az/bicep are installed.
@@ -24,7 +24,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="$( cd "${SCRIPT_DIR}/.." && pwd )"
 
 TARGET=""
-NAME_SUFFIX="${NAME_SUFFIX:-ptmsft01}"
+NAME_SUFFIX="${NAME_SUFFIX:-ptmsft02}"
 LOCATION="${LOCATION:-eastus2}"
 
 usage() {

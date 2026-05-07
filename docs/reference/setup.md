@@ -44,7 +44,7 @@ this table. After Phase C, `infra/provision.sh` will write a
 | `AZURE_SUBSCRIPTION_ID`    | The subscription you'll deploy into                              |                             |
 | `AZURE_TENANT_ID`          | Tenant of that subscription                                      |                             |
 | `AZURE_LOCATION`           | `eastus2` (default) — must support SRE Agent                     | `eastus2`                   |
-| `NAME_SUFFIX`              | A short, globally-unique token (e.g., your initials + 4 digits) | `ptmsft01`                  |
+| `NAME_SUFFIX`              | A short, globally-unique token (e.g., your initials + 4 digits) | `ptmsft02`                  |
 | `GITHUB_OWNER`             | Your GitHub username or org                                      |                             |
 | `GITHUB_REPO_NAME`         | Repository name                                                  | `agentic-loop-demo`         |
 | `GITHUB_REPO`              | `${GITHUB_OWNER}/${GITHUB_REPO_NAME}`                            |                             |

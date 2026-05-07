@@ -16,7 +16,7 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="$( cd "${SCRIPT_DIR}/.." && pwd )"
 
-NAME_SUFFIX="${NAME_SUFFIX:-ptmsft01bk}"
+NAME_SUFFIX="${NAME_SUFFIX:-ptmsft02bk}"
 LOCATION="${LOCATION:-swedencentral}"
 RG="rg-agentic-loop-demo-backup"
 

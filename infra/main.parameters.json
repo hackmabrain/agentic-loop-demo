@@ -2,7 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "nameSuffix":         { "value": "ptmsft01" },
+    "nameSuffix":         { "value": "ptmsft02" },
     "location":           { "value": "eastus2" },
     "appServiceSku":      { "value": "B1" },
     "appServiceTier":     { "value": "Basic" },
