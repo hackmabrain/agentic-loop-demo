@@ -26,11 +26,11 @@ param nameSuffix string
 ])
 param location string = 'eastus2'
 
-@description('App Service plan SKU. S1 (Standard) is the default — works on Azure Free Trial and supports the 3 deployment slots the demo needs.')
-param appServiceSku string = 'S1'
+@description('App Service plan SKU. B1 (Basic) is the default — the only tier with default quota on Azure Free Trial subscriptions. Single-slot mode (no deployment slots).')
+param appServiceSku string = 'B1'
 
-@description('App Service plan tier. Must match the SKU family: Standard for S1/S2/S3, PremiumV2 for P1v2+, PremiumV3 for P1v3+.')
-param appServiceTier string = 'Standard'
+@description('App Service plan tier. Must match the SKU family: Basic for B1/B2/B3, Standard for S1/S2/S3, PremiumV2 for P1v2+, PremiumV3 for P1v3+.')
+param appServiceTier string = 'Basic'
 
 @description('Whether the staging slot starts with INJECT_ERROR=1 set. The demo Wednesday staging step relies on this default.')
 param stagingInjectError bool = true
@@ -127,61 +127,14 @@ resource site 'Microsoft.Web/sites@2023-12-01' = {
 }
 
 // ---------------------------------------------------------------------------
-// Slots: staging (always INJECT_ERROR=1 by default for the demo trigger) and historical
+// Single-slot mode: deployment slots require Standard tier or higher.
+// Free Trial subscriptions only have default quota for Basic (B1), so the
+// demo runs against the production slot only. The failure-injection trigger
+// uses `az webapp config appsettings set INJECT_ERROR=1` followed by a
+// restart, instead of a slot swap. Same audience-visible behaviour:
+// /products starts returning 500, the App Insights trace fires, the metric
+// alert hits the Action Group webhook, the SRE Agent investigates.
 // ---------------------------------------------------------------------------
-resource stagingSlot 'Microsoft.Web/sites/slots@2023-12-01' = {
-  parent: site
-  name: 'staging'
-  location: location
-  tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
-  properties: {
-    serverFarmId: plan.id
-    httpsOnly: true
-    siteConfig: {
-      linuxFxVersion: 'NODE|20-lts'
-      alwaysOn: true
-      ftpsState: 'Disabled'
-      minTlsVersion: '1.2'
-      healthCheckPath: '/'
-      appSettings: [
-        { name: 'WEBSITE_NODE_DEFAULT_VERSION', value: '~20' }
-        { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: appi.properties.ConnectionString }
-        { name: 'ApplicationInsightsAgent_EXTENSION_VERSION', value: '~3' }
-        { name: 'INJECT_ERROR', value: stagingInjectError ? '1' : '0' }
-      ]
-    }
-  }
-}
-
-resource historicalSlot 'Microsoft.Web/sites/slots@2023-12-01' = {
-  parent: site
-  name: 'historical'
-  location: location
-  tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
-  properties: {
-    serverFarmId: plan.id
-    httpsOnly: true
-    siteConfig: {
-      linuxFxVersion: 'NODE|20-lts'
-      alwaysOn: true
-      ftpsState: 'Disabled'
-      minTlsVersion: '1.2'
-      healthCheckPath: '/'
-      appSettings: [
-        { name: 'WEBSITE_NODE_DEFAULT_VERSION', value: '~20' }
-        { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: appi.properties.ConnectionString }
-        { name: 'ApplicationInsightsAgent_EXTENSION_VERSION', value: '~3' }
-        { name: 'INJECT_ERROR', value: '0' }
-      ]
-    }
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Diagnostic settings — site & slots → Log Analytics
@@ -206,9 +159,11 @@ resource siteDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
 }
 
 // ---------------------------------------------------------------------------
-// Action group: SRE Agent webhook target. Webhook URL is a placeholder that
-// Pavan updates in SETUP step C11. The placeholder is acceptable in Bicep —
-// no traffic is sent until the alert fires.
+// Action group: deployed with NO receivers at first. The SRE Agent webhook
+// is added in SETUP step C11 via `az monitor action-group update` once the
+// SRE Agent has been provisioned and we know its incoming webhook URL.
+// (Azure tightened webhook URL validation in late 2025 — placeholder URLs
+// like example.invalid are now rejected as WebhookServiceUriBlocked.)
 // ---------------------------------------------------------------------------
 resource actionGroup 'microsoft.insights/actionGroups@2023-01-01' = {
   name: actionGroupName
@@ -219,16 +174,7 @@ resource actionGroup 'microsoft.insights/actionGroups@2023-01-01' = {
   properties: {
     groupShortName: 'aldemoSre'
     enabled: true
-    webhookReceivers: [
-      {
-        name: 'sre-agent-webhook'
-        // PLACEHOLDER — Pavan updates this in SETUP C11 after SRE Agent
-        // is provisioned. The placeholder URL never receives real traffic
-        // until the metric alert fires AND the URL is replaced.
-        serviceUri: 'https://example.invalid/sre-agent/placeholder'
-        useCommonAlertSchema: true
-      }
-    ]
+    // Receivers added post-deploy in SETUP step C11.
   }
 }
 
@@ -275,8 +221,6 @@ resource alert5xx 'Microsoft.Insights/metricAlerts@2018-03-01' = {
 // ---------------------------------------------------------------------------
 output appServiceName string = site.name
 output appServiceUrl string = 'https://${site.properties.defaultHostName}'
-output appServiceStagingUrl string = 'https://${stagingSlot.properties.defaultHostName}'
-output appServiceHistoricalUrl string = 'https://${historicalSlot.properties.defaultHostName}'
 output appInsightsConnectionString string = appi.properties.ConnectionString
 output appInsightsName string = appi.name
 output logAnalyticsWorkspaceId string = law.id

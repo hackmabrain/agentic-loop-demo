@@ -188,20 +188,31 @@ fi
 QR="${REPO_ROOT}/QUICK_REFERENCE.md"
 if [[ -f "${QR}" ]]; then
   echo ">> Auto-populating QUICK_REFERENCE.md Variables block…"
-  python3 - "${QR}" "${TARGET}" <<PYEOF
-import re, sys, pathlib, os
-qr_path = pathlib.Path(sys.argv[1])
-target  = sys.argv[2]
-text    = qr_path.read_text()
+  # Quoted heredoc ('PYEOF') stops bash from touching anything inside.
+  # Bash variables are passed in as positional args so Python sees only
+  # Python syntax. Avoids the bash-vs-Python "bad substitution" trap.
+  python3 - "${QR}" "${TARGET}" \
+    "${SUB_ID}" "${TENANT_ID}" "${RG}" \
+    "${APP_URL}" "${APP_NAME}" "${APPI_NAME}" "${LAW_NAME}" "${AG_NAME}" <<'PYEOF' || \
+    echo "   WARN: QUICK_REFERENCE.md auto-populate failed — non-fatal, continuing."
+import re, sys, pathlib
+(qr_path, target, sub_id, tenant_id, rg, app_url, app_name, appi_name, law_name, ag_name) = (
+    pathlib.Path(sys.argv[1]),
+    sys.argv[2],
+    sys.argv[3], sys.argv[4], sys.argv[5],
+    sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9], sys.argv[10],
+)
+target_upper = target.upper()
+text = qr_path.read_text()
 block = f"""<!-- AUTO:VARS:{target}:START -->
-AZURE_SUBSCRIPTION_ID = ${SUB_ID}
-AZURE_TENANT_ID       = ${TENANT_ID}
-AZURE_RG_${target.upper()}     = ${RG}
-APP_URL               = ${APP_URL}
-APP_NAME              = ${APP_NAME}
-APPI_NAME             = ${APPI_NAME}
-LAW_NAME              = ${LAW_NAME}
-ACTION_GROUP_NAME     = ${AG_NAME}
+AZURE_SUBSCRIPTION_ID = {sub_id}
+AZURE_TENANT_ID       = {tenant_id}
+AZURE_RG_{target_upper}     = {rg}
+APP_URL               = {app_url}
+APP_NAME              = {app_name}
+APPI_NAME             = {appi_name}
+LAW_NAME              = {law_name}
+ACTION_GROUP_NAME     = {ag_name}
 <!-- AUTO:VARS:{target}:END -->"""
 pattern = rf"<!-- AUTO:VARS:{target}:START -->.*?<!-- AUTO:VARS:{target}:END -->"
 new = re.sub(pattern, block, text, flags=re.DOTALL)

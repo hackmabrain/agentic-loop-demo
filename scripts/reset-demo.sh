@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 # Restores the demo environment to a known-good state.
 #
-# Steps:
-#   1. Make sure the production slot has INJECT_ERROR=0.
-#   2. Make sure the staging slot has INJECT_ERROR=1 (so the trigger script
-#      can swap it back into production for the next rehearsal).
-#   3. Restart both slots so the new settings take effect.
-#   4. Smoke-test /products on production until it returns 200.
+# Single-slot mode (Free Trial / B1):
+#   1. Set INJECT_ERROR=0 on production.
+#   2. Restart the App Service so the new setting takes effect.
+#   3. Smoke-test /products until it returns 200.
 #
 # Idempotent. Safe to run between rehearsals.
 
@@ -28,22 +26,12 @@ echo ">> Resetting ${TARGET} (${APP_NAME})…"
 az webapp config appsettings set \
   --resource-group "${AZURE_RG}" \
   --name "${APP_NAME}" \
-  --slot production \
   --settings INJECT_ERROR=0 >/dev/null
 
-az webapp config appsettings set \
-  --resource-group "${AZURE_RG}" \
-  --name "${APP_NAME}" \
-  --slot staging \
-  --settings INJECT_ERROR=1 >/dev/null
+echo ">> Restarting App Service…"
+az webapp restart --resource-group "${AZURE_RG}" --name "${APP_NAME}"
 
-echo ">> Restarting production slot…"
-az webapp restart --resource-group "${AZURE_RG}" --name "${APP_NAME}" --slot production
-
-echo ">> Restarting staging slot…"
-az webapp restart --resource-group "${AZURE_RG}" --name "${APP_NAME}" --slot staging
-
-echo ">> Waiting for /products to return 200 on production…"
+echo ">> Waiting for /products to return 200…"
 URL="${APP_URL}/products?category=electronics"
 for i in $(seq 1 24); do
   STATUS="$(curl -s -o /dev/null -w "%{http_code}" "${URL}")"

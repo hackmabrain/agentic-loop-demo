@@ -79,14 +79,14 @@ else
   ko "5xx metric alert missing or disabled"
 fi
 
-# Action group with non-placeholder webhook
+# Action group must have a real webhook receiver wired up to the SRE Agent.
+# (Bicep deploys the Action Group with no receivers; SETUP step C11 adds the
+# SRE Agent incoming webhook URL via `az monitor action-group update`.)
 ag_uri="$(az monitor action-group show --resource-group "${AZURE_RG}" --name "${ACTION_GROUP_NAME}" --query "webhookReceivers[0].serviceUri" -o tsv 2>/dev/null || true)"
 if [[ -z "${ag_uri}" ]]; then
-  ko "Action group has no webhook receiver"
-elif [[ "${ag_uri}" == "https://example.invalid/sre-agent/placeholder" ]]; then
-  ko "Action group still has placeholder webhook — see SETUP step C11"
+  ko "Action group has no webhook receiver yet — complete SETUP step C11 to wire it to the SRE Agent"
 else
-  ok "Action group webhook updated to: ${ag_uri:0:60}…"
+  ok "Action group webhook configured: ${ag_uri:0:60}…"
 fi
 
 # SRE Agent existence (preview — try the resource provider via az rest)

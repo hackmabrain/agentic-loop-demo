@@ -4,8 +4,8 @@
   "parameters": {
     "nameSuffix":         { "value": "ptmsft01" },
     "location":           { "value": "eastus2" },
-    "appServiceSku":      { "value": "S1" },
-    "appServiceTier":     { "value": "Standard" },
+    "appServiceSku":      { "value": "B1" },
+    "appServiceTier":     { "value": "Basic" },
     "stagingInjectError": { "value": true }
   }
 }

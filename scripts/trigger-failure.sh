@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Triggers the live demo failure that the Azure SRE Agent diagnoses.
 #
-# Mechanism: the staging slot has INJECT_ERROR=1 set (Bicep default).
-# This script performs a slot swap that brings INJECT_ERROR=1 into the
-# production slot. Within ~30–60 seconds, /products starts returning
-# 500 and the metric alert fires.
+# Single-slot mode: the Free Trial subscription only has quota for Basic
+# (B1) tier App Service plans, which don't support deployment slots. The
+# trigger sets INJECT_ERROR=1 directly on the production slot and restarts
+# it. Within ~30–60 seconds, /products starts returning 500 and the
+# metric alert fires.
 #
 # Usage:
 #   bash scripts/trigger-failure.sh
@@ -13,8 +14,7 @@
 # **Run once per rehearsal.** Always follow with `scripts/reset-demo.sh`
 # before re-arming. The script has a guard at the top: if production is
 # already in the failed state (INJECT_ERROR=1), it exits cleanly with a
-# message instead of swapping again — running it twice without a reset
-# does NOT swap back, it leaves the demo in a stuck-broken state.
+# message instead of trying to fire again.
 
 set -euo pipefail
 
@@ -29,54 +29,32 @@ ENV_FILE="${REPO_ROOT}/.env.${TARGET}"
 # shellcheck source=/dev/null
 source "${ENV_FILE}"
 
-echo ">> Target: ${TARGET}"
+echo ">> Target:        ${TARGET}"
 echo ">> Resource group: ${AZURE_RG}"
-echo ">> App: ${APP_NAME}"
+echo ">> App:           ${APP_NAME}"
 
 # Guard: refuse to fire if production is already in the failed state.
-# Otherwise the slot swap moves INJECT_ERROR=1 staging into prod (which
-# already has INJECT_ERROR=1) and the originally-broken prod into staging
-# — net result: still broken, no useful demo trigger. Tell the operator
-# to reset first.
 PROD_INJECT="$(az webapp config appsettings list \
   --resource-group "${AZURE_RG}" \
   --name "${APP_NAME}" \
-  --slot production \
   --query "[?name=='INJECT_ERROR'].value | [0]" -o tsv 2>/dev/null || echo "0")"
 if [[ "${PROD_INJECT}" == "1" ]]; then
-  echo "STOP: production slot already has INJECT_ERROR=1 (failure already armed/fired)."
+  echo "STOP: production already has INJECT_ERROR=1 (failure already armed/fired)."
   echo "      Run: bash scripts/reset-demo.sh --target ${TARGET}"
   echo "      Then re-run this script."
   exit 1
 fi
 
-# Belt-and-braces: confirm the staging slot still has INJECT_ERROR=1
-# before we swap, otherwise the swap is a no-op for the demo.
-STAGING_INJECT="$(az webapp config appsettings list \
+echo ">> Setting INJECT_ERROR=1 on production…"
+az webapp config appsettings set \
   --resource-group "${AZURE_RG}" \
   --name "${APP_NAME}" \
-  --slot staging \
-  --query "[?name=='INJECT_ERROR'].value | [0]" -o tsv 2>/dev/null || echo "")"
+  --settings INJECT_ERROR=1 >/dev/null
 
-if [[ "${STAGING_INJECT}" != "1" ]]; then
-  echo ">> Staging slot does NOT have INJECT_ERROR=1. Setting it now…"
-  az webapp config appsettings set \
-    --resource-group "${AZURE_RG}" \
-    --name "${APP_NAME}" \
-    --slot staging \
-    --settings INJECT_ERROR=1 >/dev/null
-  echo "   waiting 10s for the staging slot to pick up the new setting…"
-  sleep 10
-fi
+echo ">> Restarting App Service to pick up the new setting…"
+az webapp restart --resource-group "${AZURE_RG}" --name "${APP_NAME}"
 
-echo ">> Swapping staging → production (INJECT_ERROR enters production)…"
-az webapp deployment slot swap \
-  --resource-group "${AZURE_RG}" \
-  --name "${APP_NAME}" \
-  --slot staging \
-  --target-slot production
-
-echo ">> Swap complete. Polling /products to confirm 500s…"
+echo ">> Polling /products to confirm 500s…"
 URL="${APP_URL}/products?category=electronics"
 for i in $(seq 1 12); do
   STATUS="$(curl -s -o /dev/null -w "%{http_code}" "${URL}")"
