@@ -64,7 +64,7 @@ for i in $(seq 1 24); do
   if [[ "${STATUS}" == "200" ]]; then
     echo
     echo "BACKUP READY at: ${APP_URL}"
-    echo "Update QUICK_REFERENCE.md APP_URL before going on stage."
+    echo "Update docs/presenter/quick-reference.md APP_URL before going on stage."
     exit 0
   fi
   sleep 10

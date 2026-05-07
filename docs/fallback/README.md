@@ -1,6 +1,6 @@
 # Fallback recordings — capture checklist (Wednesday afternoon)
 
-The recovery story in `DEMO_RUNBOOK.md` Section 5 references six
+The recovery story in `../presenter/demo-runbook.md` Section 5 references six
 recordings under this folder. They are the parachutes for "everything
 broke on stage." Capture them once on Wednesday afternoon. Total
 runtime: ~20 minutes.
@@ -52,5 +52,5 @@ story is no longer aspirational.
 
 The demo runbook says *what* to do if the demo collapses; this file
 says *how* to produce the artifacts that make recovery possible.
-Splitting them keeps `DEMO_RUNBOOK.md` short enough to skim Thursday
+Splitting them keeps `../presenter/demo-runbook.md` short enough to skim Thursday
 morning.

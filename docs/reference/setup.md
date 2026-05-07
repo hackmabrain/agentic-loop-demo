@@ -1,4 +1,4 @@
-# SETUP.md — first-time provisioning runbook
+# setup.md — first-time provisioning runbook
 
 You're about to provision the entire demo environment. Read the
 pre-flight checklist below first, then work straight through Phase A,
@@ -585,7 +585,7 @@ GITHUB_REPO="${GITHUB_REPO}" bash scripts/verify-github.sh
 **Expected result:** `GITHUB ✓`.
 
 **If this fails:** the script names which check failed and the
-`SETUP.md` step that owns it.
+`setup.md` step that owns it.
 
 ---
 
@@ -912,14 +912,14 @@ az role assignment list --assignee "$SRE_PRINCIPAL" --all --query "[].roleDefini
 
 **Estimated time:** 3 min.
 
-**What you'll do:** Upload `docs/http-5xx-runbook.md` so the SRE Agent
+**What you'll do:** Upload `http-5xx-runbook.md` so the SRE Agent
 can ground its investigation.
 
 **Exact actions:**
 
 1. SRE Agent overview → **Knowledge base** in left nav.
 2. Click **+ Upload**.
-3. **File type:** Markdown. Select `docs/http-5xx-runbook.md` from your
+3. **File type:** Markdown. Select `http-5xx-runbook.md` from your
    local repo.
 4. **Title:** *Catalog API HTTP 5xx on /products*.
 5. **Tags:** `service:catalog-api`, `signal:5xx`.

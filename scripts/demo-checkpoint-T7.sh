@@ -5,8 +5,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # shellcheck source=/dev/null
 source "${SCRIPT_DIR}/_checkpoint-common.sh"
 
-# Pull the SRE Agent dashboard URL from QUICK_REFERENCE.md if available.
-SRE_THREAD_URL="$(grep -E '^T7' "${CP_REPO_ROOT}/QUICK_REFERENCE.md" 2>/dev/null \
+# Pull the SRE Agent dashboard URL from docs/presenter/quick-reference.md if available.
+SRE_THREAD_URL="$(grep -E '^T7' "${CP_REPO_ROOT}/docs/presenter/quick-reference.md" 2>/dev/null \
   | sed -E 's/^T7[[:space:]]+[^ ]+[[:space:]]+//' \
   | tr -d '[:space:]' || true)"
 
@@ -20,13 +20,13 @@ if [[ -z "${SRE_THREAD_URL}" \
   cat >&2 <<EOF
 ERROR: T7 parachute is not configured.
 
-The SRE Agent thread URL has not been populated in QUICK_REFERENCE.md.
+The SRE Agent thread URL has not been populated in docs/presenter/quick-reference.md.
 This is normally written by stage-demo.sh on Wednesday. If the preview
 API did not expose the thread URL, you must paste it manually:
 
   1. Open Azure Portal → SRE Agent → Investigations.
   2. Copy the URL of the most recent completed thread.
-  3. Edit QUICK_REFERENCE.md and replace the T7 line with that URL
+  3. Edit docs/presenter/quick-reference.md and replace the T7 line with that URL
      (between the AUTO:TIMEPOINTS markers).
   4. Re-run this script.
 EOF

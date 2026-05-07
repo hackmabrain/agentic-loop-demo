@@ -1,10 +1,10 @@
-# ONE_HOUR_REHEARSAL.md — minimum-viable AM dry-run
+# one-hour-rehearsal.md — minimum-viable AM dry-run
 
 > You have 60 minutes in the morning. This file tells you exactly what
 > to do, in what order, and what to skip. It assumes Phases A, B, and C
-> of `SETUP.md` are already complete and `verify-staging.sh` was last
+> of `../reference/setup.md` are already complete and `verify-staging.sh` was last
 > green Wednesday evening. If those assumptions are not true, **do not
-> use this file** — go to `SETUP.md`, you need 90+ minutes.
+> use this file** — go to `../reference/setup.md`, you need 90+ minutes.
 
 ## Pre-conditions you must confirm in the first 5 minutes
 
@@ -98,14 +98,14 @@ az monitor metrics alert list --resource-group "${AZURE_RG}" \
 # 9. SRE Agent visual confirmation.
 bash scripts/demo-checkpoint-T7.sh    # opens Wednesday's pre-completed thread
 #    If T7 errors with "parachute is not configured" — paste the SRE
-#    thread URL into QUICK_REFERENCE.md (see SETUP step C9 / Wednesday
+#    thread URL into quick-reference.md (see SETUP step C9 / Wednesday
 #    checklist).
 
 # 10. Loop close — SRE Agent's GitHub issue.
 bash scripts/demo-checkpoint-T8.sh    # opens the issue with sre-agent label
 #     If empty: SRE Agent hasn't filed yet — wait another 2 min.
 #     If still empty after 5 min total: T8 will be cold on stage. Fall
-#     back to Wednesday's pre-staged issue (link in QUICK_REFERENCE.md).
+#     back to Wednesday's pre-staged issue (link in quick-reference.md).
 
 # 11. **CRITICAL** — reset before you walk away.
 bash scripts/reset-demo.sh             # restores production = 200 OK
@@ -122,15 +122,15 @@ open https://github.com/${GITHUB_REPO}/actions                                  
 open https://github.com/${GITHUB_REPO}/issues?q=is%3Aopen+sort%3Aupdated                    # Tab 3
 open https://github.com/copilot/agents                                                      # Tab 4
 # Tabs 5–7: Azure Portal Metrics blade, SRE Agent dashboard, fallback recording.
-# Open these by hand from QUICK_REFERENCE.md Section 2.
+# Open these by hand from quick-reference.md Section 2.
 
-# 13. Print QUICK_REFERENCE.md (page 1 + 2).
+# 13. Print quick-reference.md (page 1 + 2).
 # 14. Eat something.
 ```
 
 ## What you are deliberately NOT doing in the 1-hour rehearsal
 
-The full Wednesday-evening flow is in `DEMO_RUNBOOK.md` Section 7. In
+The full Wednesday-evening flow is in `demo-runbook.md` Section 7. In
 60 minutes you cannot run it. Skip:
 
 - `scripts/restage-demo.sh` — 15–25 min because the Coding Agent has to
@@ -155,7 +155,7 @@ bash scripts/verify-staging.sh    # must print STAGING ✓
 ```
 
 If `restage-demo.sh` doesn't finish in time, fall back to the wholly-
-live choreography in `DEMO_RUNBOOK.md` **Section 9** ("FALLBACK ONLY").
+live choreography in `demo-runbook.md` **Section 9** ("FALLBACK ONLY").
 You will have ~3 minutes of audience-visible agent waiting. Lean
 hard on the honesty disclosure ("the agents take a couple of
 minutes — happy to talk through what's happening while we wait")

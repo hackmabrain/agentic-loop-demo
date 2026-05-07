@@ -14,7 +14,7 @@
 #   * Captures every output into ../.env.demo (or .env.rehearsal).
 #   * Configures GitHub OIDC federated credentials between the App Service
 #     Managed Identity and the GitHub repo (uses gh CLI).
-#   * Auto-populates the Variables marker block in QUICK_REFERENCE.md.
+#   * Auto-populates the Variables marker block in docs/presenter/quick-reference.md.
 #
 # Re-runnable: every Azure call is idempotent. Safe to run twice.
 
@@ -184,17 +184,17 @@ if command -v gh >/dev/null 2>&1 && [[ -n "${GITHUB_REPO:-}" ]]; then
   gh secret set AZURE_SUBSCRIPTION_ID --body "${SUB_ID}" --repo "${GITHUB_REPO}" >/dev/null
 fi
 
-# ---- Auto-populate QUICK_REFERENCE.md marker block ------------------------
-QR="${REPO_ROOT}/QUICK_REFERENCE.md"
+# ---- Auto-populate docs/presenter/quick-reference.md marker block ---------
+QR="${REPO_ROOT}/docs/presenter/quick-reference.md"
 if [[ -f "${QR}" ]]; then
-  echo ">> Auto-populating QUICK_REFERENCE.md Variables block…"
+  echo ">> Auto-populating docs/presenter/quick-reference.md Variables block…"
   # Quoted heredoc ('PYEOF') stops bash from touching anything inside.
   # Bash variables are passed in as positional args so Python sees only
   # Python syntax. Avoids the bash-vs-Python "bad substitution" trap.
   python3 - "${QR}" "${TARGET}" \
     "${SUB_ID}" "${TENANT_ID}" "${RG}" \
     "${APP_URL}" "${APP_NAME}" "${APPI_NAME}" "${LAW_NAME}" "${AG_NAME}" <<'PYEOF' || \
-    echo "   WARN: QUICK_REFERENCE.md auto-populate failed — non-fatal, continuing."
+    echo "   WARN: docs/presenter/quick-reference.md auto-populate failed — non-fatal, continuing."
 import re, sys, pathlib
 (qr_path, target, sub_id, tenant_id, rg, app_url, app_name, appi_name, law_name, ag_name) = (
     pathlib.Path(sys.argv[1]),
@@ -235,12 +235,12 @@ Outputs persisted to: ${ENV_FILE}
 
 Remaining MANUAL steps (cannot be automated, require Azure Portal):
   1. SETUP step C6  — Provision Azure SRE Agent in eastus2 (Portal walkthrough).
-  2. SETUP step C7  — Grant SRE Agent RBAC roles (CLI snippets in SETUP.md).
-  3. SETUP step C8  — Upload docs/http-5xx-runbook.md to SRE Agent Knowledge Base.
+  2. SETUP step C7  — Grant SRE Agent RBAC roles (CLI snippets in docs/reference/setup.md).
+  3. SETUP step C8  — Upload docs/reference/http-5xx-runbook.md to SRE Agent Knowledge Base.
   4. SETUP step C9  — Create the Incident Response Plan.
   5. SETUP step C10 — Configure GitHub MCP connector with a separate PAT.
   6. SETUP step C11 — Replace the action group webhook placeholder URL with
-     the SRE Agent incoming webhook (CLI snippet in SETUP.md).
+     the SRE Agent incoming webhook (CLI snippet in docs/reference/setup.md).
 
 Run the verifier once you complete C6–C11:
   bash scripts/verify-azure.sh

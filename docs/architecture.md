@@ -62,12 +62,12 @@ demo time points (T0–T8) map onto it.
 | Metric Alert (5xx)       | `alert-5xx-aldemo-<suffix>`        | HTTP 5xx > 5 in 5 min, sev 2                               |
 | Action Group             | `ag-aldemo-<suffix>`               | Webhook target for the SRE Agent                           |
 
-Externally provisioned (Portal walkthrough in `SETUP.md` Phase C, steps C6–C11):
+Externally provisioned (Portal walkthrough in `reference/setup.md` Phase C, steps C6–C11):
 
 | Component                   | Why it's not in Bicep                                   |
 |-----------------------------|---------------------------------------------------------|
 | Azure SRE Agent (preview)   | Preview product; ARM coverage is partial. Portal is the safe path. |
-| SRE Agent Knowledge Base    | Upload `docs/http-5xx-runbook.md` via Portal.           |
+| SRE Agent Knowledge Base    | Upload `reference/http-5xx-runbook.md` via Portal.           |
 | SRE Agent Incident Plan     | Configured against the 5xx alert.                       |
 | SRE Agent GitHub MCP        | Needs a separate PAT scoped to `repo` + `issues:write`. |
 
@@ -84,7 +84,7 @@ Externally provisioned (Portal walkthrough in `SETUP.md` Phase C, steps C6–C11
   the GitHub MCP, and exactly one tool: `file_issue`. Approved.
   Registered. Bounded.
 
-## Time-point map (see `DEMO_RUNBOOK.md` Section 4 for narration)
+## Time-point map (see `presenter/demo-runbook.md` Section 4 for narration)
 
 | TP | Where the artifact lives                                  |
 |----|-----------------------------------------------------------|

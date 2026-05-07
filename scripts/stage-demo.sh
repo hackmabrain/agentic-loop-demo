@@ -57,7 +57,7 @@ echo "Issue #${issue1_num} created."
 # --- T2: file Issue #2 (the bug) and assign Copilot ------------------------
 step "T2: file Issue #2 (bug report)"
 # The issue body is a literal heredoc here so it cannot drift if anyone
-# edits docs/demo-issue-template.md. The .md file remains the human-
+# edits docs/reference/demo-issue-template.md. The .md file remains the human-
 # readable canonical version; we accept that the two may diverge.
 ISSUE_BODY="$(cat <<EOF
 The Catalog API is returning HTTP 500 on GET /products with no query string.
@@ -147,12 +147,12 @@ echo "Wait ~5–10 min for SRE Agent to investigate and file an issue on the reh
 echo "stage-demo.sh continues in 8 minutes — go drink water."
 sleep 480
 
-# --- Capture URLs for QUICK_REFERENCE.md -----------------------------------
-step "Updating QUICK_REFERENCE.md with TIME-POINT URLs"
+# --- Capture URLs for docs/presenter/quick-reference.md -----------------------------------
+step "Updating docs/presenter/quick-reference.md with TIME-POINT URLs"
 sre_thread_url="(open Azure Portal → SRE Agent → Investigations and copy the most recent thread URL)"
 sre_issue_url="$(gh issue list --repo "${GITHUB_REPO}" --label sre-agent --state open --json url --jq '.[0].url // ""')"
 
-python3 - "${REPO_ROOT}/QUICK_REFERENCE.md" <<PYEOF
+python3 - "${REPO_ROOT}/docs/presenter/quick-reference.md" <<PYEOF
 import re, sys, pathlib
 qr = pathlib.Path(sys.argv[1])
 text = qr.read_text()
@@ -169,7 +169,7 @@ T8  SRE Agent filed issue         {sre_issue_url or '(populated after Wed run co
 <!-- AUTO:TIMEPOINTS:END -->"""
 text = re.sub(r"<!-- AUTO:TIMEPOINTS:START -->.*?<!-- AUTO:TIMEPOINTS:END -->", block, text, flags=re.DOTALL)
 qr.write_text(text)
-print("QUICK_REFERENCE.md updated.")
+print("docs/presenter/quick-reference.md updated.")
 PYEOF
 
 cat <<EOF

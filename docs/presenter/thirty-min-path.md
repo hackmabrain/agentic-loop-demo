@@ -1,7 +1,7 @@
-# THIRTY_MIN_PATH.md — what to do when you have 30 minutes left
+# thirty-min-path.md — what to do when you have 30 minutes left
 
 > 30 minutes is **not** enough for a full first-time provision (that's
-> 90 min — see `SETUP.md`). It is enough to either (a) finish a
+> 90 min — see `../reference/setup.md`). It is enough to either (a) finish a
 > half-done provision, (b) confirm a previously-done provision is
 > still good, or (c) salvage a degraded state into a deliverable
 > demo. The file you open next depends on which state you're in.
@@ -55,11 +55,11 @@ gh run list --repo "${GITHUB_REPO}" --workflow daily-status.lock.yml --limit 1
 gh issue list --repo "${GITHUB_REPO}" --label daily-status --state open --limit 3
 # Confirm a new [repo status] issue appeared. That's the cold open verified.
 
-# 5 min — open the 8 tabs in QUICK_REFERENCE.md Section 2
-# 5 min — print QUICK_REFERENCE.md, eat, breathe, walk on stage
+# 5 min — open the 8 tabs in quick-reference.md Section 2
+# 5 min — print quick-reference.md, eat, breathe, walk on stage
 ```
 
-Then on stage, follow `DEMO_RUNBOOK.md` Section 4 (canonical staged
+Then on stage, follow `demo-runbook.md` Section 4 (canonical staged
 choreography). **Single sentence**: if Step 0 was four ✅, the demo
 will work. Don't second-guess.
 
@@ -84,7 +84,7 @@ bash scripts/restage-demo.sh
 # 2 min — verify
 bash scripts/verify-staging.sh         # must print STAGING ✓
 
-# 2 min — open tabs from QUICK_REFERENCE.md, print, walk on
+# 2 min — open tabs from quick-reference.md, print, walk on
 ```
 
 If `restage-demo.sh` is still running at minute 25, **stop it
@@ -110,7 +110,7 @@ What still works without Azure / fresh provision:
    tell them.
 3. **The pre-recorded fallback `closed-loop.mov`** — if Wednesday's
    capture exists (`docs/fallback/closed-loop.mov`), play it and
-   narrate over it with the honesty disclosure from `DEMO_RUNBOOK.md`
+   narrate over it with the honesty disclosure from `demo-runbook.md`
    Section 4.
 
 ```bash
@@ -119,7 +119,7 @@ ls docs/fallback/                                    # do the .mov files exist?
 gh repo list --limit 20 | grep -i 'agentic\|aw'      # any other gh-aw repos you can use?
 
 # 10 min — read the deliverable script
-# Open DEMO_RUNBOOK.md Section 9 ("FALLBACK ONLY: live-only choreography")
+# Open demo-runbook.md Section 9 ("FALLBACK ONLY: live-only choreography")
 # This is the wholly-live path that does NOT require pre-staging.
 
 # 10 min — emergency tab setup
@@ -129,7 +129,7 @@ gh repo list --limit 20 | grep -i 'agentic\|aw'      # any other gh-aw repos you
 #   Tab 2: Actions tab (or any gh-aw repo's Actions)
 #   Tab 7: docs/fallback/closed-loop.mov             (the recording)
 
-# 5 min — read the honesty disclosure twice (Section 4 of DEMO_RUNBOOK.md)
+# 5 min — read the honesty disclosure twice (Section 4 of demo-runbook.md)
 # Walk on stage. Open with: "Some of what I'll show you was captured
 # earlier this week — these agents take a couple of minutes to do
 # real work, and I'd rather not have us all watch spinners. The
@@ -142,31 +142,31 @@ gh repo list --limit 20 | grep -i 'agentic\|aw'      # any other gh-aw repos you
 
 ## Direct answer to "which file first, which next"
 
-**If Path A** (everything green): read `ONE_HOUR_REHEARSAL.md` Block 1
-+ Block 4 only (skip Blocks 2 + 3). 20 minutes. Then `QUICK_REFERENCE.md`.
+**If Path A** (everything green): read `one-hour-rehearsal.md` Block 1
++ Block 4 only (skip Blocks 2 + 3). 20 minutes. Then `quick-reference.md`.
 
 **If Path B** (re-stage needed): run `scripts/restage-demo.sh`
-immediately. While it runs, read `DEMO_RUNBOOK.md` Section 4 once.
-Then `QUICK_REFERENCE.md`.
+immediately. While it runs, read `demo-runbook.md` Section 4 once.
+Then `quick-reference.md`.
 
-**If Path C** (partial salvage): read `DEMO_RUNBOOK.md` **Section 9**
+**If Path C** (partial salvage): read `demo-runbook.md` **Section 9**
 ("FALLBACK ONLY"). That's the only file that matters in 30 minutes
-when you can't get the cloud back. Then `QUICK_REFERENCE.md` for
+when you can't get the cloud back. Then `quick-reference.md` for
 tab order.
 
 ---
 
-## What `SETUP.md` is for
+## What `../reference/setup.md` is for
 
-`SETUP.md` is a **90-minute first-time provisioning runbook**. It is
+`../reference/setup.md` is a **90-minute first-time provisioning runbook**. It is
 not appropriate for a 30-minute window. If you have not done it
 before today and the diagnostic above shows ❌ on `.env.demo`, the
 *honest* answer is: you cannot do a full setup in 30 minutes. Path C
 is the only realistic option.
 
-## What `ONE_HOUR_REHEARSAL.md` is for
+## What `one-hour-rehearsal.md` is for
 
-`ONE_HOUR_REHEARSAL.md` assumes setup is fully done and you have 60
+`one-hour-rehearsal.md` assumes setup is fully done and you have 60
 minutes to dry-run. Half its blocks (the live trigger + SRE Agent
 investigation, ~20 min) don't fit in 30 minutes; that's why this
 file exists.

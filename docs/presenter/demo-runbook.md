@@ -1,4 +1,4 @@
-# DEMO_RUNBOOK.md — rehearsal & demo-day playbook
+# demo-runbook.md — rehearsal & demo-day playbook
 
 > Read this once Wednesday morning. Skim it before every rehearsal.
 > Re-skim it Thursday morning at the venue.
@@ -112,7 +112,7 @@ appreciate the honesty — they all do this themselves.
 
 | Beat            | Time     | Live? | What happens                                                   |
 |-----------------|----------|-------|----------------------------------------------------------------|
-| File bug live   | 1:15–1:30 | live  | Paste from `docs/demo-issue-template.md`, assignee=Copilot     |
+| File bug live   | 1:15–1:30 | live  | Paste from `../reference/demo-issue-template.md`, assignee=Copilot     |
 | Show Wed's PR   | 1:30–2:30 | clicks| Pre-staged PR #3 (Draft), walk the diff                        |
 | Mark Ready      | 2:30–2:40 | live  | CCR fires within ~10 sec                                       |
 | Walk CCR        | 2:40–3:10 | clicks| Already-rendered CCR comments                                  |
@@ -229,8 +229,8 @@ recording on stage.
       az group delete --name rg-agentic-loop-demo-backup --yes --no-wait
 [ ] Run: bash scripts/stage-demo.sh               # ~15–25 min, walk away
 [ ] Run: bash scripts/verify-staging.sh           # STAGING ✓
-[ ] Open QUICK_REFERENCE.md → confirm AUTO blocks are populated
-[ ] Manually paste the SRE Agent thread URL into QUICK_REFERENCE.md
+[ ] Open quick-reference.md → confirm AUTO blocks are populated
+[ ] Manually paste the SRE Agent thread URL into quick-reference.md
     (the preview API may not expose it; copy from Portal → SRE Agent
      → Investigations → most recent thread)
 ```
@@ -245,7 +245,7 @@ recording on stage.
 [ ] Set terminal font to 18pt
 [ ] Plug in HDMI; mirror displays
 [ ] Test microphone
-[ ] Print QUICK_REFERENCE.md (page 1 + 2)
+[ ] Print quick-reference.md (page 1 + 2)
 [ ] Eat something
 ```
 

@@ -29,7 +29,7 @@
 #   - GitHub repo secrets populated (AZURE_*) — overwriting any prior values
 #
 # Manual steps remaining after this:
-#   - SRE Agent Portal walkthrough (SETUP.md Phase C6–C11, ~35 min)
+#   - SRE Agent Portal walkthrough (docs/reference/setup.md Phase C6–C11, ~35 min)
 #   - Fallback recordings (docs/fallback/README.md, ~20 min)
 
 set -euo pipefail
@@ -204,7 +204,7 @@ cat <<EOF
     GET $APP_URL/products?category=…       → 200  (categorized filter works)
 
   Manual steps remaining:
-    1. SRE Agent Portal walkthrough — SETUP.md Phase C6–C11 (~35 min)
+    1. SRE Agent Portal walkthrough — docs/reference/setup.md Phase C6–C11 (~35 min)
        Sign in to https://portal.azure.com with your work account.
        Now unblocked since you're on a corporate Entra account.
 
