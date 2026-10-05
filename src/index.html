@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Northwind Outlet — Catalog</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-soft: #f6f8fa;
+      --fg: #1f2328;
+      --fg-soft: #59636e;
+      --border: #d1d9e0;
+      --accent: #8957e5;
+      --accent-soft: #f5f0ff;
+      --error: #d1242f;
+      --error-soft: #ffebe9;
+      --success: #1a7f37;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+      line-height: 1.5;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    header .meta {
+      color: var(--fg-soft);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+    nav.categories {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    nav.categories button {
+      background: var(--bg);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    nav.categories button:hover { background: var(--bg-soft); }
+    nav.categories button[aria-pressed="true"] {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      background: var(--bg);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 1px 3px rgba(137, 87, 229, 0.08);
+    }
+    .card .category {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .card .price {
+      font-size: 20px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.01em;
+    }
+    .card .stock {
+      color: var(--fg-soft);
+      font-size: 13px;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .card .stock.low { color: var(--error); }
+    .empty, .error {
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+    }
+    .empty {
+      background: var(--bg-soft);
+      color: var(--fg-soft);
+    }
+    .error {
+      background: var(--error-soft);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+    .error h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .error code {
+      background: rgba(0,0,0,0.05);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 13px;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 32px;
+      color: var(--fg-soft);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+    }
+    footer .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: 1px;
+    }
+    .status-dot.ok    { background: var(--success); }
+    .status-dot.bad   { background: var(--error); }
+    .status-dot.unk   { background: var(--fg-soft); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Northwind Outlet</h1>
+    <div class="meta">
+      <span id="status"><span class="status-dot unk"></span>connecting…</span>
+    </div>
+  </header>
+
+  <main>
+    <nav class="categories" id="categories">
+      <button data-cat=""             aria-pressed="true">All products</button>
+      <button data-cat="electronics"  aria-pressed="false">Electronics</button>
+      <button data-cat="office"       aria-pressed="false">Office</button>
+      <button data-cat="travel"       aria-pressed="false">Travel</button>
+    </nav>
+
+    <div id="catalog" class="grid"></div>
+  </main>
+
+  <footer>
+    <span>Catalog API · build <code id="build">dev</code></span>
+    <span>Demo · GitHub Dev Days SF · 2026</span>
+  </footer>
+
+  <script>
+    const $catalog   = document.getElementById('catalog');
+    const $status    = document.getElementById('status');
+    const $build     = document.getElementById('build');
+    const $cats      = document.getElementById('categories');
+
+    // Fetch the build SHA from the health endpoint and display it.
+    fetch('/healthz').then(r => r.json()).then(j => {
+      $build.textContent = (j.version || 'dev').slice(0, 7);
+    }).catch(() => {});
+
+    function setStatus(state, text) {
+      const cls = state === 'ok' ? 'ok' : state === 'bad' ? 'bad' : 'unk';
+      $status.innerHTML = `<span class="status-dot ${cls}"></span>${text}`;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      })[c]);
+    }
+
+    function renderProducts(items) {
+      if (!items || items.length === 0) {
+        $catalog.innerHTML = `
+          <div class="empty" style="grid-column: 1/-1;">
+            No products in this category yet.
+          </div>`;
+        return;
+      }
+      $catalog.innerHTML = items.map(p => {
+        const lowStock = p.stockCount < 50;
+        return `
+          <article class="card">
+            <span class="category">${escapeHtml(p.category)}</span>
+            <h2>${escapeHtml(p.name)}</h2>
+            <div class="price">$${Number(p.price).toFixed(2)}</div>
+            <div class="stock ${lowStock ? 'low' : ''}">${p.stockCount} in stock</div>
+          </article>`;
+      }).join('');
+    }
+
+    function renderError(status, message) {
+      const code = status === 'network' ? 'NETWORK' : `HTTP ${status}`;
+      $catalog.innerHTML = `
+        <div class="error" style="grid-column: 1/-1;">
+          <h2>We're having trouble loading the catalog</h2>
+          <p>The catalog service returned <code>${code}</code>.
+             Engineering has been notified and is investigating.</p>
+        </div>`;
+    }
+
+    async function loadCategory(category) {
+      // Toggle active button
+      [...$cats.querySelectorAll('button')].forEach(b => {
+        b.setAttribute('aria-pressed', b.dataset.cat === category ? 'true' : 'false');
+      });
+
+      setStatus('unk', 'loading…');
+      const url = category ? `/products?category=${encodeURIComponent(category)}` : '/products';
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          setStatus('bad', `error · ${res.status}`);
+          renderError(res.status);
+          return;
+        }
+        const data = await res.json();
+        setStatus('ok', `live · ${data.length} item${data.length === 1 ? '' : 's'}`);
+        renderProducts(data);
+      } catch (e) {
+        setStatus('bad', 'offline');
+        renderError('network');
+      }
+    }
+
+    // Wire up category buttons
+    $cats.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') loadCategory(e.target.dataset.cat || '');
+    });
+
+    // Initial load — no category, so the seeded bug fires here pre-fix.
+    loadCategory('');
+  </script>
+</body>
+</html>

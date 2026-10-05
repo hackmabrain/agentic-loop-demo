@@ -1,0 +1,25 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Env (provisioner outputs)
+.env
+.env.demo
+.env.rehearsal
+.env.demo-backup
+.env.demo.canonical
+
+# Build artifacts
+app.zip
+*.lock.json.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Bicep
+*.bicep.bak

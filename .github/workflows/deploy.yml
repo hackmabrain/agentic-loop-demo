@@ -1,0 +1,98 @@
+name: deploy
+
+# Deploys the Catalog API to the Azure App Service.
+#
+# Single-slot mode (Free Trial / B1):
+#   * Authenticates to Azure via OIDC federated credentials. No long-lived
+#     secrets in the repo. AZURE_CLIENT_ID / AZURE_TENANT_ID /
+#     AZURE_SUBSCRIPTION_ID are set by infra/provision.sh.
+#   * Tests must pass before any deploy artifact is produced.
+#   * Deploys directly to the production App Service. The `production`
+#     environment has a required reviewer — that's the human gate the
+#     audience sees in slide 5 ("Same approvals.").
+#   * Smoke-tests the production / endpoint after deploy.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  RESOURCE_GROUP: rg-agentic-loop-demo
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.set-artifact.outputs.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/package-lock.json
+      - name: Install dependencies
+        working-directory: src
+        run: npm ci
+      - name: Run tests
+        working-directory: src
+        run: npm test
+      - name: Package app
+        run: |
+          cd src
+          zip -r ../app.zip . -x "tests/*" "*.test.js"
+      - id: set-artifact
+        run: echo "name=catalog-api-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.set-artifact.outputs.name }}
+          path: app.zip
+
+  deploy-production:
+    if: github.event_name != 'pull_request'
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-and-test.outputs.artifact-name }}
+      - uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - id: show
+        name: Resolve app name
+        run: |
+          APP_NAME="$(az webapp list --resource-group "$RESOURCE_GROUP" --query '[0].name' -o tsv)"
+          echo "APP_NAME=$APP_NAME" >> "$GITHUB_ENV"
+      - name: Deploy to production
+        run: |
+          az webapp deployment source config-zip \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_NAME" \
+            --src app.zip
+      - name: Smoke test production
+        run: |
+          PROD_URL="https://${APP_NAME}.azurewebsites.net"
+          for i in $(seq 1 12); do
+            STATUS="$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL/")"
+            if [[ "$STATUS" == "200" ]]; then echo "Production OK"; exit 0; fi
+            echo "Attempt $i: $STATUS — sleeping 5s"; sleep 5
+          done
+          echo "Production smoke test failed."; exit 1
